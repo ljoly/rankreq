@@ -1,91 +1,54 @@
 package rankreq
 
-import (
-	"bufio"
-	"encoding/csv"
-	"errors"
-	"io"
-	"os"
-	"strings"
-)
-
-// Query represents a query
-type Query struct {
-	Str   string `json:"query"`
-	Count int    `json:"count"`
-}
-
-// Moment represents a moment token and its children.
-// It contains a Query if its value contains seconds.
+// Moment represents one of the 6 Moment tokens (yyyy-mm-dd-hh-mm-ss) and its children.
+// It contains a Query(ies) if its value contains seconds.
 type Moment struct {
 	isSeconds bool
-	Value     string
-	Count     int
-	Tree      Trie
-	Query     Query
+	value     string
+	count     int
+	children  MomentTrie
+	queries   Queries
 }
 
-// Index parses and indexes queries in a prefix tree
-func (root *Moment) Index() error {
+// MomentTrie is a map of Moments
+type MomentTrie map[string]*Moment
 
-	// Open and read file
-	tsvFile, err := os.Open(os.Args[1])
-	defer tsvFile.Close()
+// Add adds a Moment to a MomentTrie and returns it
+func (tree *MomentTrie) Add(value string, query string, isSeconds bool) *Moment {
 
-	if err != nil {
-		return errors.New("Open error")
+	new := &Moment{
+		isSeconds: isSeconds,
+		value:     value,
+		count:     1,
 	}
-	reader := csv.NewReader(bufio.NewReader(tsvFile))
+	new.queries.Add(query)
+	if len(*tree) == 0 {
+		*tree = make(MomentTrie)
+	}
+	(*tree)[value] = new
 
-	// Parse data
-	// i := 0
-	moment := root
-	for {
-		line, err := reader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return errors.New("Read error")
-		}
-		log := strings.Fields(line[0])
-		if len(log) != 3 {
-			return errors.New("Wrong format")
-		}
+	return (*tree)[value]
+}
 
-		// Get moment: there are 6 tokens to define a moment: yyyy/mm/dd/hh/mm/ss
-		timeTokens := strings.Split(log[0]+"-"+strings.Replace(log[1], ":", "-", -1), "-")
-		if len(timeTokens) != 6 {
-			return errors.New("Wrong format")
-		}
-		// Create a new node in the trie for each token
-		for i, token := range timeTokens {
-			if found := moment.Tree.Find(string(token)); found != nil {
-				found.Count++
-			} else {
-				// fmt.Println("NOT FOUND")
-				isSeconds := false
-				query := Query{}
-				if i == 5 {
-					isSeconds = true
-					query.Str = log[2]
-					query.Count++
-				}
-				new := &Moment{
-					isSeconds: isSeconds,
-					Value:     token,
-					Tree:      make(Trie),
-					Query:     query,
-					Count:     1,
-				}
-				moment.Tree.Add(new)
-			}
-			i++
-		}
-		// if i == 1 {
-		// 	os.Exit(0)
+// Find returns a Moment from a MomentTrie
+func (tree MomentTrie) Find(key string) *Moment {
 
-		// }
-		// i++
+	if _, found := tree[key]; found {
+		return tree[key]
 	}
 	return nil
+}
+
+// Update updates a Moment and its Queries
+func (moment *Moment) Update(query string) {
+	// fmt.Println(" with count++")
+	moment.count++
+	if moment.isSeconds {
+		// fmt.Println(" and with", query)
+		if foundQuery := moment.queries.Find(query); foundQuery != nil {
+			foundQuery.Count++
+		} else {
+			moment.queries.Add(query)
+		}
+	}
 }

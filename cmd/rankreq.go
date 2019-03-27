@@ -8,8 +8,7 @@ import (
 	"github.com/ljoly/rankreq"
 )
 
-// CreateRoutes adds routes to the multiplexer
-func CreateRoutes(mux *http.ServeMux, root rankreq.Moment) {
+func createRoutes(mux *http.ServeMux, root rankreq.Moment) {
 
 	mux.HandleFunc("/1/queries/count/", root.CountQueries)
 	mux.HandleFunc("/1/queries/popular/", root.PopularQueries)
@@ -22,20 +21,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	root := rankreq.Moment{
-		Tree: make(rankreq.Trie),
-	}
-	err := root.Index()
+	// Open and get file descriptor
+	tsvFile, reader, err := rankreq.FileDescribe(os.Args[1])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)
 	}
 
-	mux := http.NewServeMux()
-	CreateRoutes(mux, root)
-	fmt.Println("listening on port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	// Create the root of the prefix tree
+	root := rankreq.Moment{}
+	err = root.Index(tsvFile, reader)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)
 	}
+
+	// Create server
+	// mux := http.NewServeMux()
+	// createRoutes(mux, root)
+	// fmt.Println("listening on port 8080")
+	// // Expose api
+	// if err := http.ListenAndServe(":8080", mux); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+	// 	os.Exit(1)
+	// }
 }
