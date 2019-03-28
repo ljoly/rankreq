@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/ljoly/rankreq"
 )
@@ -30,6 +31,7 @@ func main() {
 
 	// Create the root of the prefix tree
 	root := rankreq.Moment{}
+	startIndex := time.Now()
 	err = root.Index(tsvFile, reader)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
@@ -37,12 +39,13 @@ func main() {
 	}
 
 	// Create server
-	// mux := http.NewServeMux()
-	// createRoutes(mux, root)
-	// fmt.Println("listening on port 8080")
-	// // Expose api
-	// if err := http.ListenAndServe(":8080", mux); err != nil {
-	// 	fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-	// 	os.Exit(1)
-	// }
+	mux := http.NewServeMux()
+	createRoutes(mux, root)
+	fmt.Printf("%-30s%s\n", ">>> Listening on port:", "8080")
+	fmt.Printf("%-30s%s\n\n", ">>> Indexing took:", time.Since(startIndex))
+	// Expose api
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		os.Exit(1)
+	}
 }
