@@ -38,7 +38,6 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 		for i, timeToken := range timeTokens {
 			// Check if the time token already exists in the current MomentTrie
 			if foundMoment := currentMoment.children.Find(string(timeToken)); foundMoment != nil {
-				// fmt.Print("Update Moment ", foundMoment.value)
 				foundMoment.Update(log[1])
 				currentMoment = foundMoment
 			} else {
@@ -47,13 +46,7 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 					isSeconds = true
 				}
 				newMoment := currentMoment.children.Add(timeToken, log[1], isSeconds)
-				// fmt.Println("Moment", newMoment.value, "created")
-				// fmt.Print("currentMoment ", currentMoment.value)
 				currentMoment = newMoment
-				// fmt.Println(" becomes newMoment", newMoment.value, "so currentMoment becomes", currentMoment.value)
-				// if len(currentMoment.queries) > 0 {
-				// fmt.Println("LOL")
-				// }
 			}
 		}
 	}
