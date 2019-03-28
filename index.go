@@ -26,12 +26,11 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 		if len(log) != 2 {
 			return errors.New("Wrong format")
 		}
-		result := r.Replace(log[0])
 
 		// timeTokens stores the 6 tokens of a Moment
-		timeTokens := strings.Split(result, "-")
-		if len(timeTokens) != 6 {
-			return errors.New("Wrong format")
+		timeTokens, err := ParseTime(log[0], r, true)
+		if err != nil {
+			return err
 		}
 
 		// Create a new Moment in the MomentTrie for each new time token
