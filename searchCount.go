@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// browseTrie returns the Moment corresponding to a time range
-func (root *Moment) browseTrie(timeTokens []string) *Moment {
+// BrowseTrie returns the Moment corresponding to a time range
+func (root *Moment) BrowseTrie(timeTokens []string) *Moment {
 
 	currentMoment := root
 	i := 0
@@ -48,7 +48,7 @@ func (root *Moment) CountQueries(w http.ResponseWriter, r *http.Request) {
 	// Search
 	response := countResponse{}
 	startIndex := time.Now()
-	moment := root.browseTrie(timeTokens)
+	moment := root.BrowseTrie(timeTokens)
 	if moment == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return

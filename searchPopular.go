@@ -55,7 +55,7 @@ func (root *Moment) PopularQueries(w http.ResponseWriter, r *http.Request) {
 		Queries: make([]Query, size),
 	}
 	// startIndex := time.Now()
-	moment := root.browseTrie(timeTokens)
+	moment := root.BrowseTrie(timeTokens)
 	if moment == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
