@@ -12,8 +12,8 @@ import (
 func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 
 	moment.children = make(MomentTrie)
-
-	// i := 0
+	// Using a replacer is faster than using string.Replace()
+	r := strings.NewReplacer(" ", "-", ":", "-")
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
@@ -21,14 +21,15 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 		} else if err != nil {
 			return errors.New("Read error")
 		}
-		// log stores the 3 parts of a query: date, time, query
-		log := strings.Fields(line[0])
-		if len(log) != 3 {
+		// log stores the 2 parts of a query: time and query
+		log := strings.Split(line[0], "\t")
+		if len(log) != 2 {
 			return errors.New("Wrong format")
 		}
+		result := r.Replace(log[0])
 
 		// timeTokens stores the 6 tokens of a Moment
-		timeTokens := strings.Split(log[0]+"-"+strings.Replace(log[1], ":", "-", -1), "-")
+		timeTokens := strings.Split(result, "-")
 		if len(timeTokens) != 6 {
 			return errors.New("Wrong format")
 		}
@@ -39,14 +40,14 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 			// Check if the time token already exists in the current MomentTrie
 			if foundMoment := currentMoment.children.Find(string(timeToken)); foundMoment != nil {
 				// fmt.Print("Update Moment ", foundMoment.value)
-				foundMoment.Update(log[2])
+				foundMoment.Update(log[1])
 				currentMoment = foundMoment
 			} else {
 				var isSeconds bool
 				if i == 5 {
 					isSeconds = true
 				}
-				newMoment := currentMoment.children.Add(timeToken, log[2], isSeconds)
+				newMoment := currentMoment.children.Add(timeToken, log[1], isSeconds)
 				// fmt.Println("Moment", newMoment.value, "created")
 				// fmt.Print("currentMoment ", currentMoment.value)
 				currentMoment = newMoment
@@ -56,11 +57,6 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 				// }
 			}
 		}
-		// i++
-		// if i == 2 {
-		// 	os.Exit(0)
-
-		// }
 	}
 	tsvFile.Close()
 	return nil
