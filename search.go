@@ -45,7 +45,6 @@ func (root *Moment) CountQueries(w http.ResponseWriter, r *http.Request) {
 	response := countResponse{}
 	replacer := strings.NewReplacer(" ", "-", ":", "-")
 	timeTokens, _ := ParseTime(moment, replacer, false)
-	var err error
 
 	// Search
 	startIndex := time.Now()
