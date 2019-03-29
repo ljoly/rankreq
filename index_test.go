@@ -6,7 +6,7 @@ import (
 
 func TestIndex(t *testing.T) {
 
-	tsvFile, reader, err := FileDescribe("test/test.tsv")
+	tsvFile, reader, err := FileDescribe("test/test_index.tsv")
 	if err != nil {
 		t.Error(err)
 	}
