@@ -1,56 +1,36 @@
 package rankreq
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
-// compareQuery compares current Query to the
-func compareQuery(momentQuery *Query, topQueries Queries) {
-
-	for {
-		i := 0
-		for _, topQuery := range topQueries {
-			if topQuery.Count < momentQuery.Count {
-				topQuery = momentQuery
-				break
-			}
-			i++
-		}
-		if i == len(topQueries) {
-			fmt.Println(topQueries)
-
-			break
-		}
-	}
-}
-
-// browsePopular recursively browses the tree from a particular Moment and returns top popular queries
-func (moment *Moment) browsePopular(topQueries Queries, size int) {
+// BrowseQueries recursively browses the tree to get all the queries of a particular time range
+func (rangeQueries Queries) BrowseQueries(moment Moment) {
 
 	if len(moment.children) > 0 {
 		for _, child := range moment.children {
-			child.browsePopular(topQueries, size)
+			rangeQueries.BrowseQueries(*child)
 		}
 	} else if moment.isSeconds {
-		for str, momentQuery := range moment.queries {
-			if len(topQueries) < size {
-				topQueries[str] = momentQuery
-			} else if found := topQueries.Find(momentQuery.Value); found != nil {
-				topQueries[momentQuery.Value].Count++
+		for str, count := range moment.queries {
+			if _, foundQuery := rangeQueries[str]; foundQuery {
+				rangeQueries[str] += count
 			} else {
-				fmt.Println("Need to compare")
-				compareQuery(momentQuery, topQueries)
+				rangeQueries[str] = count
 			}
 		}
 	}
 }
 
 type popularResponse struct {
-	Queries Queries `json:"queries"`
+	Queries []Query `json:"queries"`
 }
 
 // PopularQueries returns the top popular queries done during a specific time range
@@ -85,28 +65,33 @@ func (root *Moment) PopularQueries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Search
-	response := popularResponse{
-		Queries: make(Queries, size),
-	}
-	// startIndex := time.Now()
-	moment := root.BrowseTrie(timeTokens)
+	startIndex := time.Now()
+	moment := root.BrowseForMoment(timeTokens)
 	if moment == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	moment.browsePopular(response.Queries, int(size))
+	rangeQueries := make(Queries)
+	rangeQueries.BrowseQueries(*moment)
+	response := popularResponse{}
 
-	fmt.Println("response:")
-	for k, v := range response.Queries {
-		fmt.Println(k, ":", v)
+	for str, count := range rangeQueries {
+		response.Queries = append(response.Queries, Query{Str: str, Count: count})
 	}
+	// sort.Slice is faster than sort.SliceStable
+	sort.Slice(response.Queries, func(i, j int) bool {
+		return response.Queries[i].Count > response.Queries[j].Count
+	})
+	response.Queries = response.Queries[:size]
+	fmt.Printf("%-30s%s\n\n", ">>> Search:", time.Since(startIndex))
 
-	// // Response
-	// json, err := json.Marshal(response)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	// w.Header().Set("Content-Type", "application/json")
-	// w.Write(json)
+	// Response
+	json, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
+	return
 }
