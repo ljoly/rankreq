@@ -41,10 +41,8 @@ func (tree MomentTrie) Find(key int64) *Moment {
 
 // Update updates a Moment and its Queries
 func (moment *Moment) Update(query string) {
-	// fmt.Println(" with count++")
 	moment.count++
 	if moment.isSeconds {
-		// fmt.Println(" and with", query)
 		if _, foundQuery := moment.queries[query]; foundQuery {
 			moment.queries[query]++
 		} else {
