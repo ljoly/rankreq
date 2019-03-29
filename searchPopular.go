@@ -83,7 +83,7 @@ func (root *Moment) PopularQueries(w http.ResponseWriter, r *http.Request) {
 		return response.Queries[i].Count > response.Queries[j].Count
 	})
 	response.Queries = response.Queries[:size]
-	fmt.Printf("%-30s%s\n\n", ">>> Search:", time.Since(startIndex))
+	fmt.Printf("%-30s%s\n", "Search popular:", time.Since(startIndex))
 
 	// Response
 	json, err := json.Marshal(response)

@@ -54,7 +54,7 @@ func (root *Moment) CountQueries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.Count = moment.count
-	fmt.Printf("%-30s%s\n", rawMoment, time.Since(startIndex))
+	fmt.Printf("%-30s%s\n", "Search count:", time.Since(startIndex))
 
 	// Response
 	json, err := json.Marshal(response)
