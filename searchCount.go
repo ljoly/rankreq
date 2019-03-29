@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// BrowseTrie returns the Moment corresponding to a time range
+// BrowseForMoment returns the Moment corresponding to a time range
 func (root *Moment) BrowseForMoment(timeTokens []int64) *Moment {
 
 	currentMoment := root
