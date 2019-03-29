@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,12 +22,21 @@ func FileDescribe(path string) (*os.File, *csv.Reader, error) {
 }
 
 // ParseTime returns a slice of time tokens
-func ParseTime(time string, r *strings.Replacer, checkLen bool) ([]string, error) {
+func ParseTime(time string, r *strings.Replacer, checkLen bool) ([]int64, error) {
 
 	result := r.Replace(time)
 	timeTokens := strings.Split(result, "-")
 	if checkLen && len(timeTokens) != 6 {
 		return nil, errors.New("Wrong format")
 	}
-	return timeTokens, nil
+
+	var ret []int64
+	for _, timeToken := range timeTokens {
+		time, err := strconv.ParseInt(timeToken, 10, 64)
+		if err != nil {
+			return nil, errors.New("Wrong format")
+		}
+		ret = append(ret, time)
+	}
+	return ret, nil
 }

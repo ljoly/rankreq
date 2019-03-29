@@ -37,7 +37,7 @@ func (moment *Moment) Index(tsvFile *os.File, reader *csv.Reader) error {
 		currentMoment := moment
 		for i, timeToken := range timeTokens {
 			// Check if the time token already exists in the current MomentTrie
-			if foundMoment := currentMoment.children.Find(string(timeToken)); foundMoment != nil {
+			if foundMoment := currentMoment.children.Find(timeToken); foundMoment != nil {
 				foundMoment.Update(log[1])
 				currentMoment = foundMoment
 			} else {

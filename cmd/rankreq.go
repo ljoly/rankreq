@@ -42,7 +42,7 @@ func main() {
 	mux := http.NewServeMux()
 	createRoutes(mux, root)
 	fmt.Printf("%-30s%s\n", ">>> Listening on port:", "8080")
-	fmt.Printf("%-30s%s\n\n", ">>> Indexing took:", time.Since(startIndex))
+	fmt.Printf("%-30s%s\n\n", ">>> Indexing:", time.Since(startIndex))
 	// Expose api
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
