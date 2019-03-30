@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-// BrowseQueries recursively browses the tree to get all the queries of a particular time range
-func (rangeQueries Queries) BrowseQueries(moment Moment) {
+// BrowseMoments recursively browses the tree to get all the queries of a particular time range
+func (rangeQueries Queries) BrowseMoments(moment Moment) {
 
 	if len(moment.children) > 0 {
 		for _, child := range moment.children {
-			rangeQueries.BrowseQueries(*child)
+			rangeQueries.BrowseMoments(*child)
 		}
 	} else if moment.isSeconds {
 		for str, count := range moment.queries {
@@ -72,7 +72,7 @@ func (root *Moment) PopularQueries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rangeQueries := make(Queries)
-	rangeQueries.BrowseQueries(*moment)
+	rangeQueries.BrowseMoments(*moment)
 	response := popularResponse{}
 
 	for str, count := range rangeQueries {
