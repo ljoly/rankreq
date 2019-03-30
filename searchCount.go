@@ -8,23 +8,6 @@ import (
 	"time"
 )
 
-// BrowseForMoment returns the Moment corresponding to a time range
-func (root *Moment) BrowseForMoment(timeTokens []int64) *Moment {
-
-	currentMoment := root
-	i := 0
-	for _, timeToken := range timeTokens {
-		if found := currentMoment.children.Find(timeToken); found != nil {
-			currentMoment = found
-			i++
-		}
-	}
-	if i < len(timeTokens) {
-		return nil
-	}
-	return currentMoment
-}
-
 type countResponse struct {
 	Count int `json:"count"`
 }
@@ -48,7 +31,7 @@ func (root *Moment) CountQueries(w http.ResponseWriter, r *http.Request) {
 	// Search
 	response := countResponse{}
 	startIndex := time.Now()
-	moment := root.BrowseForMoment(timeTokens)
+	moment := root.FindMoment(timeTokens)
 	if moment == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return

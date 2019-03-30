@@ -10,10 +10,20 @@ type Query struct {
 type Queries map[string]int
 
 // Add adds a Query to a map of queries
-func (tree *Queries) Add(value string) {
+func (queries *Queries) Add(value string) {
 
-	if len(*tree) == 0 {
-		*tree = make(Queries)
+	if len(*queries) == 0 {
+		*queries = make(Queries)
 	}
-	(*tree)[value] = 1
+	(*queries)[value] = 1
+}
+
+// GetAll builds a Queries
+func (queries *Queries) GetAll(str string, count int) {
+
+	if _, foundQuery := (*queries)[str]; foundQuery {
+		(*queries)[str] += count
+	} else {
+		(*queries)[str] = count
+	}
 }

@@ -11,24 +11,6 @@ import (
 	"time"
 )
 
-// BrowseMoments recursively browses the tree to get all the queries of a particular time range
-func (rangeQueries Queries) BrowseMoments(moment Moment) {
-
-	if len(moment.children) > 0 {
-		for _, child := range moment.children {
-			rangeQueries.BrowseMoments(*child)
-		}
-	} else if moment.isSeconds {
-		for str, count := range moment.queries {
-			if _, foundQuery := rangeQueries[str]; foundQuery {
-				rangeQueries[str] += count
-			} else {
-				rangeQueries[str] = count
-			}
-		}
-	}
-}
-
 type popularResponse struct {
 	Queries []Query `json:"queries"`
 }
@@ -66,13 +48,13 @@ func (root *Moment) PopularQueries(w http.ResponseWriter, r *http.Request) {
 
 	// Search
 	startIndex := time.Now()
-	moment := root.BrowseForMoment(timeTokens)
+	moment := root.FindMoment(timeTokens)
 	if moment == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
 	rangeQueries := make(Queries)
-	rangeQueries.BrowseMoments(*moment)
+	moment.Browse(&rangeQueries)
 	response := popularResponse{}
 
 	for str, count := range rangeQueries {

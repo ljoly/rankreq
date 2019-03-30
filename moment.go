@@ -30,8 +30,8 @@ func (tree *MomentTrie) Add(value int64, query string, isSeconds bool) *Moment {
 	return (*tree)[value]
 }
 
-// Find returns a Moment from a MomentTrie
-func (tree MomentTrie) Find(key int64) *Moment {
+// FindChild returns a Moment from a MomentTrie
+func (tree MomentTrie) FindChild(key int64) *Moment {
 
 	if _, found := tree[key]; found {
 		return tree[key]
@@ -47,6 +47,37 @@ func (moment *Moment) Update(query string) {
 			moment.queries[query]++
 		} else {
 			moment.queries.Add(query)
+		}
+	}
+}
+
+// FindMoment returns the Moment corresponding to a time range
+func (moment *Moment) FindMoment(timeTokens []int64) *Moment {
+
+	currentMoment := moment
+	i := 0
+	for _, timeToken := range timeTokens {
+		if found := currentMoment.children.FindChild(timeToken); found != nil {
+			currentMoment = found
+			i++
+		}
+	}
+	if i < len(timeTokens) {
+		return nil
+	}
+	return currentMoment
+}
+
+// Browse recursively browses the tree to get all the queries of a particular time range
+func (moment Moment) Browse(rangeQueries *Queries) {
+
+	if len(moment.children) > 0 {
+		for _, child := range moment.children {
+			child.Browse(rangeQueries)
+		}
+	} else if moment.isSeconds {
+		for str, count := range moment.queries {
+			rangeQueries.GetAll(str, count)
 		}
 	}
 }
