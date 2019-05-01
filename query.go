@@ -12,7 +12,7 @@ type Queries map[string]int
 // Add adds a Query to a map of queries
 func (queries *Queries) Add(value string) {
 
-	if len(*queries) == 0 {
+	if *queries == nil {
 		*queries = make(Queries)
 	}
 	(*queries)[value] = 1

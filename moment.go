@@ -22,7 +22,7 @@ func (tree *MomentTrie) Add(value int64, query string, isSeconds bool) *Moment {
 		count:     1,
 	}
 	new.queries.Add(query)
-	if len(*tree) == 0 {
+	if *tree == nil {
 		*tree = make(MomentTrie)
 	}
 	(*tree)[value] = new
