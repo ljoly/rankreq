@@ -21,7 +21,9 @@ func (tree *MomentTrie) Add(value int64, query string, isSeconds bool) *Moment {
 		value:     value,
 		count:     1,
 	}
-	new.queries.Add(query)
+	if isSeconds {
+		new.queries.Add(query)
+	}
 	if *tree == nil {
 		*tree = make(MomentTrie)
 	}
